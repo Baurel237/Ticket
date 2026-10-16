@@ -49,7 +49,7 @@ public class GestionnaireErreurs {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErreurApi> integrite(DataIntegrityViolationException e) {
         return reponse(HttpStatus.CONFLICT, "Règle de gestion violée",
-                "Ce titre est déjà utilisé : deux tickets ne peuvent pas avoir le même titre. (RG-02)");
+                "Ce titre est déjà utilisé : deux tickets ne peuvent pas avoir le même titre.");
     }
 
     @ExceptionHandler(Exception.class)

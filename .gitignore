@@ -1,0 +1,14 @@
+# Sujet de l'épreuve (non versionné)
+*.pdf
+sujet.txt
+
+# Dépendances et builds
+node_modules/
+dist/
+target/
+
+# IDE / OS
+.idea/
+.vscode/
+*.log
+.DS_Store

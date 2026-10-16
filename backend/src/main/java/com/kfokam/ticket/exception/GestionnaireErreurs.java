@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
@@ -48,7 +49,17 @@ public class GestionnaireErreurs {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErreurApi> integrite(DataIntegrityViolationException e) {
         return reponse(HttpStatus.CONFLICT, "Règle de gestion violée",
-                "RG-02 : un ticket avec ce titre existe déjà.");
+                "Ce titre est déjà utilisé : deux tickets ne peuvent pas avoir le même titre. (RG-02)");
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErreurApi> imprevue(Exception e) {
+        if (e instanceof ErrorResponse erreurHttp) {
+            HttpStatus status = HttpStatus.valueOf(erreurHttp.getStatusCode().value());
+            return reponse(status, "Requête refusée", "Cette demande n'est pas possible.");
+        }
+        return reponse(HttpStatus.INTERNAL_SERVER_ERROR, "Problème technique",
+                "Un problème est survenu sur le serveur. Veuillez réessayer dans un instant.");
     }
 
     private ResponseEntity<ErreurApi> reponse(HttpStatus status, String erreur, String message) {

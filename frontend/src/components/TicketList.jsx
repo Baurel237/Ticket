@@ -14,7 +14,6 @@ export default function TicketList({
   tickets,
   filtre,
   erreurChargement,
-  erreurFermeture,
   fermetureEnCours,
   onChangerFiltre,
   onReessayer,
@@ -46,12 +45,6 @@ export default function TicketList({
           </select>
         </div>
       </div>
-
-      {erreurFermeture && (
-        <p className="message message-erreur" role="alert">
-          {erreurFermeture}
-        </p>
-      )}
 
       {etat === 'chargement' && (
         <p className="message" role="status">

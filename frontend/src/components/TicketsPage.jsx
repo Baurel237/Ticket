@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { creerTicket, fermerTicket, listerTickets } from '../services/ticketService.js'
 import TicketForm from './TicketForm.jsx'
+import PopupErreur from './PopupErreur.jsx'
 import TicketList from './TicketList.jsx'
 
 export default function TicketsPage() {
@@ -9,7 +10,7 @@ export default function TicketsPage() {
   const [etat, setEtat] = useState('chargement')
   const [erreurChargement, setErreurChargement] = useState('')
   const [erreurFormulaire, setErreurFormulaire] = useState('')
-  const [erreurFermeture, setErreurFermeture] = useState('')
+  const [popup, setPopup] = useState(null)
   const [envoiEnCours, setEnvoiEnCours] = useState(false)
   const [fermetureEnCours, setFermetureEnCours] = useState(null)
   const derniereRequete = useRef(0)
@@ -45,6 +46,7 @@ export default function TicketsPage() {
       return true
     } catch (erreur) {
       setErreurFormulaire(erreur.message)
+      setPopup({ titre: 'Création impossible', message: erreur.message })
       return false
     } finally {
       setEnvoiEnCours(false)
@@ -53,12 +55,11 @@ export default function TicketsPage() {
 
   async function handleFermeture(id) {
     setFermetureEnCours(id)
-    setErreurFermeture('')
     try {
       await fermerTicket(id)
       await charger(filtre, { silencieux: true })
     } catch (erreur) {
-      setErreurFermeture(erreur.message)
+      setPopup({ titre: 'Fermeture impossible', message: erreur.message })
     } finally {
       setFermetureEnCours(null)
     }
@@ -83,12 +84,15 @@ export default function TicketsPage() {
         tickets={tickets}
         filtre={filtre}
         erreurChargement={erreurChargement}
-        erreurFermeture={erreurFermeture}
         fermetureEnCours={fermetureEnCours}
         onChangerFiltre={setFiltre}
         onReessayer={() => charger(filtre)}
         onFermer={handleFermeture}
       />
+
+      {popup && (
+        <PopupErreur titre={popup.titre} message={popup.message} onFermer={() => setPopup(null)} />
+      )}
     </main>
   )
 }

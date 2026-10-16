@@ -26,7 +26,7 @@ public class TicketService {
         String titre = requete.titre().trim();
         if (repository.existsByTitre(titre)) {
             throw new RegleDeGestionException(
-                    "RG-02 : un ticket avec le titre « " + titre + " » existe déjà.");
+                    "Le titre « " + titre + " » est déjà utilisé : deux tickets ne peuvent pas avoir le même titre. (RG-02)");
         }
         Ticket ticket = repository.saveAndFlush(new Ticket(titre, requete.description()));
         return TicketResponse.from(ticket);
@@ -45,7 +45,7 @@ public class TicketService {
         Ticket ticket = repository.findById(id).orElseThrow(() -> new TicketIntrouvableException(id));
         if (ticket.getStatut() == Statut.FERME) {
             throw new RegleDeGestionException(
-                    "RG-03 : le ticket " + id + " est déjà FERME, il ne peut plus changer d'état.");
+                    "Ce ticket est déjà fermé : un ticket fermé ne peut plus changer d'état. (RG-03)");
         }
         ticket.setStatut(Statut.FERME);
         return TicketResponse.from(ticket);

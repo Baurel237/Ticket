@@ -9,7 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "tickets")
@@ -22,7 +22,6 @@ public class Ticket {
     @Column(nullable = false, length = 100, unique = true)
     private String titre;
 
-    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Enumerated(EnumType.STRING)
@@ -30,7 +29,7 @@ public class Ticket {
     private Statut statut;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime dateCreation;
+    private Instant dateCreation;
 
     protected Ticket() {
     }
@@ -39,7 +38,7 @@ public class Ticket {
         this.titre = titre;
         this.description = description;
         this.statut = Statut.OUVERT;
-        this.dateCreation = LocalDateTime.now();
+        this.dateCreation = Instant.now();
     }
 
     public Long getId() {
@@ -62,7 +61,7 @@ public class Ticket {
         this.statut = statut;
     }
 
-    public LocalDateTime getDateCreation() {
+    public Instant getDateCreation() {
         return dateCreation;
     }
 }

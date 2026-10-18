@@ -7,6 +7,8 @@ import com.kfokam.ticket.exception.TicketIntrouvableException;
 import com.kfokam.ticket.model.Statut;
 import com.kfokam.ticket.model.Ticket;
 import com.kfokam.ticket.repository.TicketRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +16,8 @@ import java.util.List;
 
 @Service
 public class TicketService {
+
+    private static final Logger log = LoggerFactory.getLogger(TicketService.class);
 
     private final TicketRepository repository;
 
@@ -23,12 +27,14 @@ public class TicketService {
 
     @Transactional
     public TicketResponse creer(TicketRequest requete) {
-        String titre = requete.titre().trim();
+        String titre = requete.titre();
+        String description = normaliserDescription(requete.description());
         if (repository.existsByTitre(titre)) {
             throw new RegleDeGestionException(
                     "Le titre « " + titre + " » est déjà utilisé : deux tickets ne peuvent pas avoir le même titre.");
         }
-        Ticket ticket = repository.saveAndFlush(new Ticket(titre, requete.description()));
+        Ticket ticket = repository.saveAndFlush(new Ticket(titre, description));
+        log.info("Ticket créé : id={}, titre=\"{}\"", ticket.getId(), titre);
         return TicketResponse.from(ticket);
     }
 
@@ -48,6 +54,11 @@ public class TicketService {
                     "Ce ticket est déjà fermé : un ticket fermé ne peut plus changer d'état.");
         }
         ticket.setStatut(Statut.FERME);
+        log.info("Ticket fermé : id={}", id);
         return TicketResponse.from(ticket);
+    }
+
+    private static String normaliserDescription(String description) {
+        return (description == null || description.isBlank()) ? null : description.trim();
     }
 }

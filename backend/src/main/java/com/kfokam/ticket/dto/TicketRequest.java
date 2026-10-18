@@ -13,4 +13,10 @@ public record TicketRequest(
 
         @Schema(description = "Description facultative", example = "L'imprimante du 2e étage ne répond plus.")
         String description) {
+
+    // Le titre est normalisé avant la validation : la longueur et l'unicité
+    // portent sur la valeur réellement enregistrée.
+    public TicketRequest {
+        titre = titre == null ? null : titre.trim();
+    }
 }

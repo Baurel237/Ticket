@@ -1,16 +1,23 @@
-# React + Vite
+# Frontend — Gestion des tickets (React + TypeScript + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Écran de gestion des tickets : liste filtrable par statut, création avec affichage des
+erreurs serveur, fermeture avec confirmation.
 
-Currently, two official plugins are available:
+## Commandes
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+npm run dev        # serveur de développement (port 5173, proxy /api -> localhost:8085)
+npm run lint       # Oxlint
+npm run typecheck  # TypeScript strict, sans émission
+npm run build      # typecheck + build de production dans dist/
+```
 
-## React Compiler
+## Structure
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+- `src/types/ticket.ts` — types partagés (`Ticket`, `Statut`, états de liste, `ErreurApi`)
+- `src/services/ticketService.ts` — appel de l'API (seul fichier utilisant `fetch`)
+- `src/components/TicketsPage.tsx` — état de l'écran et orchestration
+- `src/components/TicketList.tsx` — liste, filtre par statut, confirmation de fermeture
+- `src/components/TicketForm.tsx` — formulaire de création (titre limité à 100 caractères)
+- `src/components/PopupErreur.tsx` — message d'erreur accessible (Échap pour fermer)

@@ -1,11 +1,17 @@
 import { useEffect, useRef } from 'react'
 
-export default function PopupErreur({ titre, message, onFermer }) {
-  const boutonRef = useRef(null)
+interface PopupErreurProps {
+  titre: string
+  message: string
+  onFermer: () => void
+}
+
+export default function PopupErreur({ titre, message, onFermer }: PopupErreurProps) {
+  const boutonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     boutonRef.current?.focus()
-    function surTouche(evenement) {
+    function surTouche(evenement: KeyboardEvent) {
       if (evenement.key === 'Escape') onFermer()
     }
     window.addEventListener('keydown', surTouche)

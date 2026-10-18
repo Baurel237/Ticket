@@ -144,6 +144,12 @@ th {
   margin: 0 0 8px;
 }
 
+.message-succes {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
 .spinner {
   display: inline-block;
   width: 14px;

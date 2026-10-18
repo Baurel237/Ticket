@@ -1,13 +1,25 @@
 import { useState } from 'react'
+import type { EtatListe, Statut, Ticket } from '../types/ticket'
 
 const FILTRES = [
   { valeur: '', libelle: 'Tous' },
   { valeur: 'OUVERT', libelle: 'OUVERT' },
   { valeur: 'EN_COURS', libelle: 'EN_COURS' },
   { valeur: 'FERME', libelle: 'FERME' },
-]
+] as const satisfies readonly { valeur: Statut | ''; libelle: string }[]
 
 const formatDate = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'short' })
+
+interface TicketListProps {
+  etat: EtatListe
+  tickets: Ticket[]
+  filtre: Statut | ''
+  erreurChargement: string
+  fermetureEnCours: number | null
+  onChangerFiltre: (filtre: Statut | '') => void
+  onReessayer: () => void
+  onFermer: (id: number) => void
+}
 
 export default function TicketList({
   etat,
@@ -18,12 +30,17 @@ export default function TicketList({
   onChangerFiltre,
   onReessayer,
   onFermer,
-}) {
-  const [confirmation, setConfirmation] = useState(null)
+}: TicketListProps) {
+  const [confirmation, setConfirmation] = useState<number | null>(null)
 
-  function confirmerFermeture(id) {
+  function confirmerFermeture(id: number) {
     setConfirmation(null)
     onFermer(id)
+  }
+
+  function changerFiltre(valeur: string) {
+    const option = FILTRES.find((f) => f.valeur === valeur)
+    if (option) onChangerFiltre(option.valeur)
   }
 
   return (
@@ -35,7 +52,7 @@ export default function TicketList({
           <select
             id="filtre-statut"
             value={filtre}
-            onChange={(evenement) => onChangerFiltre(evenement.target.value)}
+            onChange={(evenement) => changerFiltre(evenement.target.value)}
           >
             {FILTRES.map((f) => (
               <option key={f.valeur} value={f.valeur}>
@@ -92,7 +109,11 @@ export default function TicketList({
                         <button type="button" onClick={() => confirmerFermeture(ticket.id)}>
                           Oui
                         </button>{' '}
-                        <button type="button" className="secondaire" onClick={() => setConfirmation(null)}>
+                        <button
+                          type="button"
+                          className="secondaire"
+                          onClick={() => setConfirmation(null)}
+                        >
                           Non
                         </button>
                       </span>

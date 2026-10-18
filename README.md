@@ -25,6 +25,8 @@ mvnw spring-boot:run    # Windows : mvnw.cmd spring-boot:run
 ```
 
 - Swagger : http://localhost:8085/swagger-ui/index.html
+- Profil `prod` (Swagger/OpenAPI désactivés, utile en déploiement réel) :
+  `mvnw spring-boot:run "-Dspring-boot.run.profiles=prod"`
 - Configuration externalisée par variables d'environnement avec valeurs par défaut :
   `DB_URL`, `DB_USER`, `DB_PASSWORD`, `CORS_ALLOWED_ORIGINS`.
 
@@ -41,7 +43,7 @@ Le serveur de développement Vite relaie `/api` vers le backend (voir `frontend/
 ### 4. Vérifications
 
 ```bash
-cd backend && mvnw test          # tests H2 en mémoire (aucun Docker requis)
+cd backend && mvnw test          # 33 tests H2/unitaires, aucun Docker requis
 cd frontend && npm run lint && npm run typecheck && npm run build
 ```
 
@@ -71,7 +73,14 @@ Les dates sont sérialisées en ISO-8601 avec fuseau (`Instant`), correctement i
 - `backend/` : `model` (entité) → `repository` → `service` (DTO en entrée/sortie) → `controller`,
   gestion des erreurs centralisée dans `exception/GestionnaireErreurs` (journalisée), configuration
   CORS et OpenAPI dans `config/`.
-- `backend/src/test/` : tests H2 du service et des 3 endpoints (codes 200/201/400/404/409).
+- `backend/src/test/` : tests H2 du service et des 3 endpoints (codes 200/201/400/404/409),
+  tests unitaires du gestionnaire d'erreurs (contraintes 409/500, codes HTTP exotiques).
 - `frontend/src/types/ticket.ts` : types partagés (`Ticket`, `Statut`).
 - `frontend/src/services/ticketService.ts` : seul endroit où `fetch` est appelé.
 - `frontend/src/components/` : `TicketsPage` (état et appels), `TicketList`, `TicketForm`, `PopupErreur`.
+
+## Preuves visuelles
+
+Captures dans [`docs/captures/`](docs/captures/) : `ui-vide` (liste vide), `ui-400` (validation),
+`ui-409` (doublon à la création), `ui-409-fermeture` (double fermeture), `ui-erreur`
+(popup en cas d'échec réseau) et `swagger` (contrat OpenAPI).

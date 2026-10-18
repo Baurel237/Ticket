@@ -1,6 +1,5 @@
 package com.kfokam.ticket.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kfokam.ticket.repository.TicketRepository;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,9 +27,6 @@ class TicketControllerTests {
     private MockMvc mockMvc;
 
     @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
     private TicketRepository repository;
 
     @BeforeEach
@@ -38,11 +34,11 @@ class TicketControllerTests {
         repository.deleteAll();
     }
 
-    private String json(String titre, String description) throws Exception {
-        return objectMapper.writeValueAsString(new java.util.HashMap<>() {{
-            put("titre", titre);
-            put("description", description);
-        }});
+    // Les intitulés de test sont des chaînes simples : pas besoin de Jackson
+    // (Spring Boot 4 embarque Jackson 3, dont le type diffère de Jackson 2).
+    private static String json(String titre, String description) {
+        String champDescription = (description == null) ? "" : ",\"description\":\"" + description + "\"";
+        return "{\"titre\":\"" + titre + "\"" + champDescription + "}";
     }
 
     // --- POST /api/tickets ---
@@ -112,6 +108,15 @@ class TicketControllerTests {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(
                         "Le corps de la requête est absent ou n'est pas un JSON valide."));
+    }
+
+    @Test
+    void postTrimeLeTitreAvantStockage() throws Exception {
+        mockMvc.perform(post("/api/tickets")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json("  Titre avec espaces autour  ", null)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.titre").value("Titre avec espaces autour"));
     }
 
     // --- GET /api/tickets ---

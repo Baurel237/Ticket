@@ -80,7 +80,10 @@ public class GestionnaireErreurs {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErreurApi> imprevue(Exception e) {
         if (e instanceof ErrorResponse erreurHttp) {
-            HttpStatus status = HttpStatus.valueOf(erreurHttp.getStatusCode().value());
+            // resolve() au lieu de valueOf() : un code HTTP exotique (non standard)
+            // ne doit pas faire échouer le gestionnaire lui-même.
+            HttpStatus resolu = HttpStatus.resolve(erreurHttp.getStatusCode().value());
+            HttpStatus status = (resolu != null) ? resolu : HttpStatus.INTERNAL_SERVER_ERROR;
             log.warn("Requête refusée : {} {} ({})", status.value(), e.getClass().getSimpleName(), e.getMessage());
             return reponse(status, "Requête refusée", "Cette demande n'est pas possible.");
         }

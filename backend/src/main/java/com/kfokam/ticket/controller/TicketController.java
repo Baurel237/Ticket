@@ -49,10 +49,16 @@ public class TicketController {
     }
 
     @GetMapping
-    @Operation(summary = "Lister les tickets", description = "Filtrable par statut (paramètre facultatif).")
+    @Operation(summary = "Lister les tickets",
+            description = "Filtrable par statut (paramètre facultatif). "
+                    + "Pagination optionnelle (page/taille, taille max 500) : sans ces paramètres, "
+                    + "la liste complète est renvoyée, triée du plus récent au plus ancien.")
     @ApiResponse(responseCode = "200", description = "Liste des tickets")
-    public List<TicketResponse> lister(@RequestParam(required = false) Statut statut) {
-        return service.lister(statut);
+    public List<TicketResponse> lister(
+            @RequestParam(required = false) Statut statut,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer taille) {
+        return service.lister(statut, page, taille);
     }
 
     @PatchMapping("/{id}/fermer")

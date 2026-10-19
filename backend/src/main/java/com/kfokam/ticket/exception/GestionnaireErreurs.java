@@ -64,10 +64,13 @@ public class GestionnaireErreurs {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErreurApi> integrite(DataIntegrityViolationException e) {
         Throwable cause = e.getMostSpecificCause();
-        String details = (cause == null || cause.getMessage() == null) ? "" : cause.getMessage();
-        // 409 uniquement quand la contrainte violée concerne bien le titre (RG-02) ;
-        // toute autre violation est un défaut applicatif et doit être journalisé en 500.
-        if (details.toLowerCase().contains("titre")) {
+        String details = (cause == null || cause.getMessage() == null) ? "" : cause.getMessage().toLowerCase();
+        // 409 uniquement quand la contrainte violée concerne bien le titre (RG-02).
+        // Détection en deux niveaux : le nom explicite de la contrainte (uk_titre,
+        // posé par la migration Flyway) d'abord, puis la mention de la colonne
+        // dans le message du driver, qui varie selon le SGBD mais reste le seul
+        // indice disponible sur une base créée avant le nommage de la contrainte.
+        if (details.contains("uk_titre") || details.contains("(titre")) {
             log.warn("Contrainte d'unicité du titre violée : {}", details);
             return reponse(HttpStatus.CONFLICT, "Règle de gestion violée",
                     "Ce titre est déjà utilisé : deux tickets ne peuvent pas avoir le même titre.");

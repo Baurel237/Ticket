@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { creerTicket, fermerTicket, listerTickets } from '../services/ticketService'
 import TicketForm from './TicketForm'
-import PopupErreur from './PopupErreur'
+import Dialogue from './Dialogue'
 import TicketList from './TicketList'
 import type { EtatListe, Statut, Ticket } from '../types/ticket'
 
@@ -20,14 +20,17 @@ export default function TicketsPage() {
   const [popup, setPopup] = useState<PopupInfo | null>(null)
   const [envoiEnCours, setEnvoiEnCours] = useState(false)
   const [fermetureEnCours, setFermetureEnCours] = useState<number | null>(null)
+  // Formulaire affiché seulement à la demande ; l'état vide y envoie l'utilisateur.
+  const [formulaireOuvert, setFormulaireOuvert] = useState(false)
+  const [ticketADefermer, setTicketADefermer] = useState<Ticket | null>(null)
   const derniereRequete = useRef(0)
 
-  // L'état « chargement » est posé par l'utilisateur (filtre, réessai) ou par
-  // l'état initial — jamais directement depuis un effet.
-  const charger = useCallback(async (statut: Statut | '') => {
+  // Une seule requête charge TOUTE la liste : les filtres et les indicateurs
+  // sont calculés côté client sur des données réelles et toujours cohérentes.
+  const charger = useCallback(async () => {
     const numero = ++derniereRequete.current
     try {
-      const donnees = await listerTickets(statut)
+      const donnees = await listerTickets()
       if (numero !== derniereRequete.current) return
       setTickets(donnees)
       setErreurChargement('')
@@ -40,20 +43,24 @@ export default function TicketsPage() {
   }, [])
 
   useEffect(() => {
-    // Chargement de données à l'affichage / changement de filtre : patron React
-    // standard, les setState ne sont exécutés qu'après le await (hors corps de l'effet).
-    // eslint-disable-next-line react/set-state-in-effect
-    charger(filtre)
-  }, [charger, filtre])
+    // Chargement des données à l'affichage : patron React standard. Le lint
+    // signale l'appel de charger() depuis un effet, mais les setState qu'il
+    // effectue sont tous after le await : jamais dans le corps synchrone de l'effet.
+    // oxlint-disable-next-line react/set-state-in-effect
+    charger()
+  }, [charger])
 
   function changerFiltre(nouveau: Statut | '') {
-    setEtat('chargement')
     setFiltre(nouveau)
+  }
+
+  function ouvrirFormulaire() {
+    setFormulaireOuvert(true)
   }
 
   function reessayer() {
     setEtat('chargement')
-    charger(filtre)
+    charger()
   }
 
   async function handleCreation(donnees: {
@@ -65,9 +72,9 @@ export default function TicketsPage() {
     setConfirmation('')
     try {
       await creerTicket(donnees)
-      await charger(filtre)
+      await charger()
       // Le ticket créé peut être hors du filtre actif : on confirme explicitement.
-      setConfirmation('Ticket créé.')
+      setConfirmation(`Le ticket « ${donnees.titre} » a été créé.`)
       return true
     } catch (erreur) {
       setErreurFormulaire(erreur instanceof Error ? erreur.message : 'Erreur inattendue.')
@@ -77,12 +84,21 @@ export default function TicketsPage() {
     }
   }
 
-  async function handleFermeture(id: number) {
+  function demanderFermeture(ticket: Ticket) {
+    setTicketADefermer(ticket)
+  }
+
+  async function confirmerFermeture() {
+    if (!ticketADefermer) return
+    const id = ticketADefermer.id
     setFermetureEnCours(id)
     try {
       await fermerTicket(id)
-      await charger(filtre)
+      await charger()
+      setConfirmation(`Le ticket « ${ticketADefermer.titre} » a été fermé.`)
+      setTicketADefermer(null)
     } catch (erreur) {
+      setTicketADefermer(null)
       setPopup({
         titre: 'Fermeture impossible',
         message: erreur instanceof Error ? erreur.message : 'Erreur inattendue.',
@@ -92,21 +108,50 @@ export default function TicketsPage() {
     }
   }
 
+  function annulerFermeture() {
+    if (fermetureEnCours === null) setTicketADefermer(null)
+  }
+
   return (
     <main className="page">
-      <header>
-        <h1>Gestion des tickets</h1>
-        <p className="sous-titre">Suivi des demandes du service de support</p>
+      <header className="en-tete-app">
+        <div className="marque">
+          <span className="marque-icone" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" />
+              <path d="M8 9h8" />
+              <path d="M8 13h5" />
+            </svg>
+          </span>
+          <div>
+            <p className="marque-titre">Gestion des tickets</p>
+            <p className="marque-slogan">Suivi des demandes du service de support</p>
+          </div>
+        </div>
+        {formulaireOuvert ? (
+          <button
+            type="button"
+            className="bouton bouton-secondaire"
+            onClick={() => setFormulaireOuvert(false)}
+          >
+            Masquer le formulaire
+          </button>
+        ) : (
+          <button type="button" className="bouton bouton-primaire" onClick={ouvrirFormulaire}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            Nouveau ticket
+          </button>
+        )}
       </header>
 
-      <TicketForm
-        envoiEnCours={envoiEnCours}
-        erreur={erreurFormulaire}
-        confirmation={confirmation}
-        onEffacerErreur={() => setErreurFormulaire('')}
-        onEffacerConfirmation={() => setConfirmation('')}
-        onCreer={handleCreation}
-      />
+      <div className="entete-carte" style={{ padding: '0 0 16px' }}>
+        <div>
+          <h1 className="titre-page">Tickets</h1>
+          <p className="sous-titre">Créez, suivez et clôturez les demandes de support.</p>
+        </div>
+      </div>
 
       <TicketList
         etat={etat}
@@ -116,11 +161,53 @@ export default function TicketsPage() {
         fermetureEnCours={fermetureEnCours}
         onChangerFiltre={changerFiltre}
         onReessayer={reessayer}
-        onFermer={handleFermeture}
-      />
+        onFermer={demanderFermeture}
+        onOuvrirFormulaire={ouvrirFormulaire}
+        formulaireOuvert={formulaireOuvert}
+      >
+        <TicketForm
+          envoiEnCours={envoiEnCours}
+          erreur={erreurFormulaire}
+          confirmation={confirmation}
+          onEffacerErreur={() => setErreurFormulaire('')}
+          onEffacerConfirmation={() => setConfirmation('')}
+          onCreer={handleCreation}
+          onAnnuler={() => setFormulaireOuvert(false)}
+        />
+      </TicketList>
+
+      {ticketADefermer && (
+        <Dialogue
+          variante="alerte"
+          titre="Fermer ce ticket ?"
+          contenu={
+            <>
+              Vous êtes sur le point de fermer le ticket{' '}
+              <b>« {ticketADefermer.titre} »</b>. Cette action ne pourra pas être annulée.
+            </>
+          }
+          boutons={[
+            { libelle: 'Annuler', variante: 'secondaire', onClick: annulerFermeture, disabled: fermetureEnCours !== null },
+            {
+              libelle: 'Confirmer la fermeture',
+              variante: 'dangereux',
+              onClick: confirmerFermeture,
+              disabled: fermetureEnCours !== null,
+              chargement: fermetureEnCours !== null,
+            },
+          ]}
+          onFermer={annulerFermeture}
+        />
+      )}
 
       {popup && (
-        <PopupErreur titre={popup.titre} message={popup.message} onFermer={() => setPopup(null)} />
+        <Dialogue
+          titre={popup.titre}
+          contenu={popup.message}
+          variante="alerte"
+          boutons={[{ libelle: "J'ai compris", variante: 'primaire', onClick: () => setPopup(null) }]}
+          onFermer={() => setPopup(null)}
+        />
       )}
     </main>
   )

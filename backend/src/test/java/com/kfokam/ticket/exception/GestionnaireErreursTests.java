@@ -37,6 +37,18 @@ class GestionnaireErreursTests {
     }
 
     @Test
+    void violationIntegriteIdentifieeParContrainteNommeRenvoie409() {
+        // Variante base créée avec Flyway : le message cite la contrainte nommée,
+        // pas la colonne entre parenthèses.
+        ResponseEntity<ErreurApi> reponse = gestionnaire.integrite(
+                new DataIntegrityViolationException(
+                        "ERROR: duplicate key value violates unique constraint \"uk_titre\""));
+
+        assertThat(reponse.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(reponse.getBody().erreur()).isEqualTo("Règle de gestion violée");
+    }
+
+    @Test
     void violationIntegriteAutreQueLeTitreRenvoie500() {
         ResponseEntity<ErreurApi> reponse = gestionnaire.integrite(
                 new DataIntegrityViolationException(

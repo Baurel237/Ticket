@@ -7,15 +7,15 @@ API **Spring Boot + PostgreSQL** et écran **React + TypeScript**.
 ### 1. Base de données (Docker)
 
 ```bash
-# Le volume du conteneur final doit exister (une seule fois) :
-docker volume create final_postgres_data
-
 docker compose up -d
 ```
 
-Le conteneur `tickets-postgres` (PostgreSQL 16) expose le port **5432** avec la base
-`tickets_db` et le compte `postgres` / `postgres`. La table `tickets` est créée
-automatiquement au démarrage du backend.
+Le volume `final_postgres_data` est créé automatiquement par Docker Compose et
+conservé entre les recréations du conteneur. Le conteneur `tickets-postgres`
+(PostgreSQL 16) expose le port **5432** avec la base `tickets_db` et le compte
+`postgres` / `postgres`. Le schéma (`tickets`) est géré par **Flyway** ; si la
+table existe déjà (base créée par une version antérieure), elle est marquée
+comme baseline puis les migrations suivantes s'appliquent.
 
 ### 2. Backend (port 8085)
 
@@ -43,7 +43,7 @@ Le serveur de développement Vite relaie `/api` vers le backend (voir `frontend/
 ### 4. Vérifications
 
 ```bash
-cd backend && mvnw test          # 33 tests H2/unitaires, aucun Docker requis
+cd backend && mvnw test          # 37 tests H2, aucun Docker requis
 cd frontend && npm run lint && npm run typecheck && npm run build
 ```
 
@@ -59,11 +59,13 @@ docker exec tickets-postgres psql -U postgres -d tickets_db \
 | Verbe | Chemin | Rôle | Succès | Erreurs |
 |---|---|---|---|---|
 | POST | `/api/tickets` | Créer un ticket (en-tête `Location`) | 201 | 400, 409 |
-| GET | `/api/tickets?statut=` | Lister, filtrable par statut | 200 | 400 (statut inconnu) |
+| GET | `/api/tickets?statut=&page=&taille=` | Lister, filtré par statut ; pagination optionnelle (`taille` max 500), triée du plus récent au plus ancien | 200 | 400 (statut inconnu) |
 | PATCH | `/api/tickets/{id}/fermer` | Fermer un ticket | 200 | 404, 409 |
 
-Règles de gestion : **RG-01** titre obligatoire (100 caractères max), statut initial OUVERT ·
-**RG-02** deux tickets ne peuvent pas avoir le même titre · **RG-03** un ticket FERME ne change plus d'état.
+Règles de gestion : **RG-01** titre obligatoire (100 caractères max), description
+facultative (2000 caractères max), statut initial OUVERT · **RG-02** deux tickets
+ne peuvent pas avoir le même titre (égalité stricte, casse comprise) ·
+**RG-03** un ticket FERME ne change plus d'état (garde atomique en SQL).
 
 Les erreurs ont toutes la forme `{ "status", "erreur", "message", "horodatage" }`.
 Les dates sont sérialisées en ISO-8601 avec fuseau (`Instant`), correctement interprétées par le navigateur.
@@ -71,13 +73,18 @@ Les dates sont sérialisées en ISO-8601 avec fuseau (`Instant`), correctement i
 ## Architecture
 
 - `backend/` : `model` (entité) → `repository` → `service` (DTO en entrée/sortie) → `controller`,
-  gestion des erreurs centralisée dans `exception/GestionnaireErreurs` (journalisée), configuration
+  gestion des erreurs centralisée dans `exception/GestionnaireErreurs` (journalisée),
+  migrations Flyway dans `src/main/resources/db/migration`, configuration
   CORS et OpenAPI dans `config/`.
-- `backend/src/test/` : tests H2 du service et des 3 endpoints (codes 200/201/400/404/409),
-  tests unitaires du gestionnaire d'erreurs (contraintes 409/500, codes HTTP exotiques).
+- `backend/src/test/` : tests H2 du service, de la pagination et des 3 endpoints
+  (codes 200/201/400/404/409), tests unitaires du gestionnaire d'erreurs
+  (contraintes 409/500, codes HTTP exotiques).
 - `frontend/src/types/ticket.ts` : types partagés (`Ticket`, `Statut`).
 - `frontend/src/services/ticketService.ts` : seul endroit où `fetch` est appelé.
-- `frontend/src/components/` : `TicketsPage` (état et appels), `TicketList`, `TicketForm`, `PopupErreur`.
+- `frontend/src/components/` : `TicketsPage` (état, appels API et en-tête),
+  `TicketList` (indicateurs, filtres, tableau/cartes), `TicketForm` (création),
+  `Dialogue` (confirmation/erreur modale accessible), `Alerte`, `BadgeStatut`,
+  `libelles`.
 
 ## Preuves visuelles
 

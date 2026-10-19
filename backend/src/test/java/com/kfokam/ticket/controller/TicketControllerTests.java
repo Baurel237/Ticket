@@ -119,6 +119,23 @@ class TicketControllerTests {
                 .andExpect(jsonPath("$.titre").value("Titre avec espaces autour"));
     }
 
+    @Test
+    void postAvecDescriptionTropLongueRenvoie400() throws Exception {
+        mockMvc.perform(post("/api/tickets")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json("Description limite", "a".repeat(2001))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("La description ne doit pas dépasser 2000 caractères."));
+    }
+
+    @Test
+    void postAvecDescriptionDe2000CaracteresEstAccepte() throws Exception {
+        mockMvc.perform(post("/api/tickets")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json("Description au maximum", "a".repeat(2000))))
+                .andExpect(status().isCreated());
+    }
+
     // --- GET /api/tickets ---
 
     @Test
@@ -162,6 +179,24 @@ class TicketControllerTests {
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.message").value(
                         "Valeur invalide pour le paramètre « statut ». Valeurs acceptées : OUVERT, EN_COURS, FERME."));
+    }
+
+    @Test
+    void getPagineParTailleRenvoie200EtLesBonnesPages() throws Exception {
+        mockMvc.perform(post("/api/tickets").contentType(MediaType.APPLICATION_JSON)
+                .content(json("Premier (plus ancien)", null)));
+        mockMvc.perform(post("/api/tickets").contentType(MediaType.APPLICATION_JSON)
+                .content(json("Second (plus récent)", null)));
+
+        mockMvc.perform(get("/api/tickets").param("taille", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].titre").value("Second (plus récent)"));
+
+        mockMvc.perform(get("/api/tickets").param("page", "1").param("taille", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].titre").value("Premier (plus ancien)"));
     }
 
     // --- PATCH /api/tickets/{id}/fermer ---

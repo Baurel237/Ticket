@@ -103,7 +103,7 @@ class TicketServiceTests {
         service.creer(new TicketRequest("Premier ticket", null));
         service.creer(new TicketRequest("Second ticket", null));
 
-        List<TicketResponse> tickets = service.lister(null);
+        List<TicketResponse> tickets = service.lister(null, null, null);
 
         assertThat(tickets).hasSize(2);
     }
@@ -114,8 +114,8 @@ class TicketServiceTests {
         service.creer(new TicketRequest("Reste ouvert", null));
         service.fermer(aFermer.id());
 
-        List<TicketResponse> ouverts = service.lister(Statut.OUVERT);
-        List<TicketResponse> fermes = service.lister(Statut.FERME);
+        List<TicketResponse> ouverts = service.lister(Statut.OUVERT, null, null);
+        List<TicketResponse> fermes = service.lister(Statut.FERME, null, null);
 
         assertThat(ouverts).hasSize(1).allMatch(t -> t.statut() == Statut.OUVERT);
         assertThat(fermes).hasSize(1).allMatch(t -> t.statut() == Statut.FERME);

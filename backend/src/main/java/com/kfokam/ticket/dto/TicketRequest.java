@@ -11,7 +11,8 @@ public record TicketRequest(
         @Size(max = 100, message = "Le titre ne doit pas dépasser 100 caractères.")
         String titre,
 
-        @Schema(description = "Description facultative", example = "L'imprimante du 2e étage ne répond plus.")
+        @Schema(description = "Description facultative (2000 caractères maximum)", example = "L'imprimante du 2e étage ne répond plus.")
+        @Size(max = 2000, message = "La description ne doit pas dépasser 2000 caractères.")
         String description) {
 
     // Le titre est normalisé avant la validation : la longueur et l'unicité

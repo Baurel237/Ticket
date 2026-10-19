@@ -18,5 +18,5 @@ services:
 
 volumes:
   final_postgres_data:
-    # Volume du conteneur final : doit exister (docker volume create final_postgres_data).
-    external: true
+    # Volume nommé géré par Docker Compose : créé automatiquement au premier
+    # up, persistant au-delà des recréations du conteneur.

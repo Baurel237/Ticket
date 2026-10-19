@@ -1,106 +1,532 @@
+/* ------------------------------------------------------------------ */
+/* Système de design — application de gestion des tickets             */
+/* Palette : indigo (primaire), gris neutres, couleurs sémantiques.   */
+/* ------------------------------------------------------------------ */
+
 :root {
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  color: #1f2937;
-  background: #f3f4f6;
+  --police: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Primaire (indigo) */
+  --primaire: #4f46e5;
+  --primaire-survol: #4338ca;
+  --primaire-clair: #eef2ff;
+  --primaire-clair-bordure: #c7d2fe;
+
+  /* Neutres */
+  --texte: #0f172a;
+  --texte-secondaire: #475569;
+  --texte-discret: #64748b;
+  --surface: #f1f5f9;
+  --carte: #ffffff;
+  --bordure: #e2e8f0;
+  --bordure-forte: #cbd5e1;
+  --fond-dialogue: rgba(15, 23, 42, 0.55);
+
+  /* Sémantique */
+  --succes-texte: #166534;
+  --succes-fond: #f0fdf4;
+  --succes-bordure: #bbf7d0;
+  --erreur-texte: #b91c1c;
+  --erreur-fond: #fef2f2;
+  --erreur-bordure: #fecaca;
+
+  /* Rayons et ombres */
+  --rayon: 8px;
+  --rayon-fort: 12px;
+  --ombre-carte: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.08);
+  --ombre-dialogue: 0 10px 40px rgba(15, 23, 42, 0.25);
+
+  color-scheme: light;
 }
 
 body {
   margin: 0;
+  background: var(--surface);
+  color: var(--texte);
+  font-family: var(--police);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
+
+/* Accessibilité : focus visible partout */
+:focus-visible {
+  outline: 3px solid var(--primaire);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ------------------------------- Page ------------------------------ */
 
 .page {
-  max-width: 860px;
+  max-width: 1040px;
   margin: 0 auto;
-  padding: 24px 16px 48px;
+  padding: 16px 16px 64px;
 }
 
-h1 {
+/* En-tête de l'application : nom + action principale. */
+.en-tete-app {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0 20px;
+}
+
+.marque {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.marque-icone {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--primaire);
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.marque-titre {
   margin: 0;
-  color: #1e3a5f;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.marque-slogan {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--texte-discret);
+}
+
+/* Titre de section de page */
+.titre-page {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .sous-titre {
-  margin: 4px 0 20px;
-  color: #6b7280;
+  margin: 2px 0 0;
+  color: var(--texte-secondaire);
+  font-size: 0.9375rem;
 }
 
-h2 {
-  margin: 0 0 12px;
-  font-size: 1.15rem;
-  color: #1e3a5f;
-}
+/* ------------------------------ Cartes ----------------------------- */
 
 .carte {
-  background: #fff;
-  border-radius: 8px;
-  padding: 16px 20px;
+  background: var(--carte);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon-fort);
+  box-shadow: var(--ombre-carte);
+  padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-label {
-  display: block;
-  margin: 10px 0 4px;
-  font-weight: 600;
-  font-size: 0.9rem;
+.entete-carte {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
-input,
-textarea,
-select {
+h2.entete-carte-titre {
+  margin: 0 0 2px;
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+.entete-carte-sous-titre {
+  margin: 0;
+  color: var(--texte-discret);
+  font-size: 0.8438rem;
+}
+
+/* ------------------------------ Boutons ---------------------------- */
+
+.bouton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 16px;
+  min-height: 40px;
+  border: 1px solid transparent;
+  border-radius: var(--rayon);
   font: inherit;
-  padding: 8px 10px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  box-sizing: border-box;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.bouton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.bouton-primaire {
+  background: var(--primaire);
+  color: #fff;
+}
+
+.bouton-primaire:hover:not(:disabled) {
+  background: var(--primaire-survol);
+}
+
+.bouton-secondaire {
+  background: var(--carte);
+  color: var(--texte);
+  border-color: var(--bordure-forte);
+}
+
+.bouton-secondaire:hover:not(:disabled) {
+  background: var(--surface);
+}
+
+.bouton-dangereux {
+  background: #dc2626;
+  color: #fff;
+}
+
+.bouton-dangereux:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.bouton-discret {
+  padding: 5px 10px;
+  min-height: 34px;
+  font-size: 0.8438rem;
+  background: var(--carte);
+  color: var(--texte);
+  border-color: var(--bordure-forte);
+}
+
+.bouton-discret:hover:not(:disabled) {
+  background: var(--surface);
+}
+
+/* ------------------------------ Champs ----------------------------- */
+
+.champ-groupe {
+  margin-bottom: 16px;
+}
+
+label,
+.libelle-legende {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--texte);
 }
 
 input[type='text'],
 textarea {
+  display: block;
   width: 100%;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  border: 1px solid var(--bordure-forte);
+  border-radius: var(--rayon);
+  background: var(--carte);
+  font: inherit;
+  color: var(--texte);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-button {
+textarea {
+  resize: vertical;
+}
+
+input[type='text']:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primaire);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.aide {
+  margin: 4px 0 0;
+  color: var(--texte-discret);
+  font-size: 0.8125rem;
+}
+
+.erreur-champ {
+  margin: 4px 0 0;
+  color: var(--erreur-texte);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.compteur {
+  display: block;
+  margin-top: 4px;
+  color: var(--texte-discret);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.compteur-depasse {
+  color: var(--erreur-texte);
+  font-weight: 600;
+}
+
+/* ------------------------------ Alertes ---------------------------- */
+
+.alerte {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--rayon);
+  border: 1px solid;
+  margin-bottom: 16px;
+}
+
+.alerte p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.alerte-succes {
+  background: var(--succes-fond);
+  color: var(--succes-texte);
+  border-color: var(--succes-bordure);
+}
+
+.alerte-erreur {
+  background: var(--erreur-fond);
+  color: var(--erreur-texte);
+  border-color: var(--erreur-bordure);
+}
+
+/* ------------------------------- Badges ---------------------------- */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.badge-OUVERT {
+  background: var(--primaire-clair);
+  color: #3730a3;
+  border: 1px solid var(--primaire-clair-bordure);
+}
+
+.badge-EN_COURS {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.badge-FERME {
+  background: var(--succes-fond);
+  color: var(--succes-texte);
+  border: 1px solid var(--succes-bordure);
+}
+
+/* --------------------------- Indicateurs --------------------------- */
+
+.grille-mesures {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.mesure {
+  background: var(--carte);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon-fort);
+  box-shadow: var(--ombre-carte);
+  padding: 14px 16px;
+}
+
+.mesure-valeur {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.mesure-libelle {
+  margin-top: 2px;
+  color: var(--texte-discret);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+/* Barre de mesures accentuée selon le statut */
+.mesure-OUVERT .mesure-valeur {
+  color: var(--primaire);
+}
+
+.mesure-EN_COURS .mesure-valeur {
+  color: #b45309;
+}
+
+.mesure-FERME .mesure-valeur {
+  color: var(--succes-texte);
+}
+
+/* ------------------------------ Filtres ---------------------------- */
+
+.filtres {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.filtre {
+  padding: 7px 14px;
+  min-height: 36px;
+  border: 1px solid var(--bordure-forte);
+  border-radius: 999px;
+  background: var(--carte);
   font: inherit;
-  padding: 8px 14px;
-  border: none;
-  border-radius: 6px;
-  background: #1e6fb8;
-  color: #fff;
+  font-size: 0.8438rem;
+  font-weight: 600;
+  color: var(--texte-secondaire);
   cursor: pointer;
 }
 
-button:hover:not(:disabled) {
-  background: #17598f;
+.filtre:hover:not(.filtre-actif) {
+  background: var(--surface);
 }
 
-button:disabled {
-  background: #9ca3af;
-  cursor: not-allowed;
+.filtre-actif {
+  background: var(--primaire);
+  border-color: var(--primaire);
+  color: #fff;
 }
 
-button.secondaire {
-  background: #6b7280;
+.filtre-nombre {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.08);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
 }
 
-form button[type='submit'] {
-  margin-top: 14px;
+.filtre-actif .filtre-nombre {
+  background: rgba(255, 255, 255, 0.25);
 }
 
-.entete-liste {
+/* ------------------------------ Skeleton --------------------------- */
+
+.skeleton {
+  border-radius: 6px;
+  background: linear-gradient(
+    100deg,
+    var(--bordure) 40%,
+    #f8fafc 50%,
+    var(--bordure) 60%
+  );
+  background-size: 200% 100%;
+  animation: scintillement 1.4s ease infinite;
+}
+
+@keyframes scintillement {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Skeletons stables : pas de déplacement de contenu au chargement. */
+.skeleton-ligne {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--bordure);
+}
+
+.skeleton-ligne:last-child {
+  border-bottom: none;
+}
+
+.skeleton-champ {
+  height: 15px;
   margin-bottom: 8px;
 }
 
-.entete-liste h2 {
-  margin: 0;
+/* --------------------------- Liste vide ---------------------------- */
+
+.etat-vide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 16px;
+  gap: 6px;
 }
 
-.entete-liste label {
-  display: inline;
-  font-weight: 600;
+.etat-vide-icone {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 8px;
+  border-radius: var(--rayon-fort);
+  background: var(--primaire-clair);
+  color: var(--primaire);
+}
+
+.etat-vide h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.etat-vide p {
+  margin: 0;
+  color: var(--texte-secondaire);
+  font-size: 0.875rem;
+  max-width: 34rem;
+}
+
+.etat-vide .bouton {
+  margin-top: 12px;
+}
+
+/* --------------------------- Tableau tickets ----------------------- */
+
+.tableau-enveloppe {
+  overflow-x: auto;
 }
 
 table {
@@ -108,56 +534,70 @@ table {
   border-collapse: collapse;
 }
 
-th,
-td {
+th {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--bordure-forte);
+  color: var(--texte-discret);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   text-align: left;
-  padding: 10px 8px;
-  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+td {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--bordure);
   vertical-align: top;
 }
 
-th {
-  background: #1e3a5f;
-  color: #fff;
+tbody tr:hover {
+  background: #f8fafc;
 }
 
-.description {
-  color: #6b7280;
-  font-size: 0.85rem;
-  margin-top: 2px;
+.ticket-titre {
+  font-weight: 600;
+  color: var(--texte);
 }
 
-.message {
-  margin: 12px 0;
-  padding: 10px 12px;
-  border-radius: 6px;
-  background: #eef2f7;
+.ticket-id {
+  color: var(--texte-discret);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
 }
 
-.message-erreur {
-  background: #fdecec;
-  color: #8a1c1c;
-  border: 1px solid #f5b5b5;
+.ticket-description {
+  margin-top: 3px;
+  color: var(--texte-secondaire);
+  font-size: 0.8438rem;
+  /* Troncature propre sur deux lignes maximum. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.message-erreur p {
-  margin: 0 0 8px;
+.ticket-date {
+  color: var(--texte-secondaire);
+  font-size: 0.8438rem;
+  white-space: nowrap;
 }
 
-.message-succes {
-  background: #ecfdf5;
-  color: #065f46;
-  border: 1px solid #a7f3d0;
+/* Sur mobile : tableau -> cartes */
+.cartes-tickets {
+  display: none;
 }
+
+/* ------------------------------ Spinner ---------------------------- */
 
 .spinner {
   display: inline-block;
   width: 14px;
   height: 14px;
-  border: 2px solid #9ca3af;
-  border-top-color: #1e6fb8;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
   border-radius: 50%;
-  vertical-align: -2px;
   animation: rotation 0.8s linear infinite;
 }
 
@@ -167,37 +607,27 @@ th {
   }
 }
 
-.badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 600;
+/* Boutons d'action du formulaire : alignés à droite, empilés en mobile */
+.boutons-formulaire {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
 }
 
-.badge-OUVERT {
-  background: #dbeafe;
-  color: #1e40af;
+@media (max-width: 720px) {
+  .boutons-formulaire {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
 }
 
-.badge-EN_COURS {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.badge-FERME {
-  background: #e5e7eb;
-  color: #374151;
-}
-
-.confirmation button {
-  padding: 4px 10px;
-}
+/* ----------------------------- Dialogue ---------------------------- */
 
 .popup-fond {
   position: fixed;
   inset: 0;
-  background: rgba(17, 24, 39, 0.5);
+  background: var(--fond-dialogue);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -206,26 +636,93 @@ th {
 }
 
 .popup {
-  background: #fff;
-  border-radius: 10px;
-  border-top: 5px solid #c0392b;
-  padding: 20px 24px;
-  max-width: 440px;
+  background: var(--carte);
+  border-radius: var(--rayon-fort);
+  border: 1px solid var(--bordure);
+  padding: 24px;
+  max-width: 460px;
   width: 100%;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--ombre-dialogue);
+}
+
+.popup-alerte h2 {
+  color: var(--erreur-texte);
 }
 
 .popup h2 {
-  color: #8a1c1c;
-  margin-bottom: 8px;
+  margin: 0 0 8px;
+  font-size: 1.0625rem;
+  font-weight: 700;
 }
 
 .popup p {
-  margin: 0 0 16px;
-  line-height: 1.45;
+  margin: 0 0 20px;
+  color: var(--texte-secondaire);
+  line-height: 1.5;
 }
 
-.popup button {
-  display: block;
-  margin-left: auto;
+.popup p b {
+  color: var(--texte);
+}
+
+.popup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* --------------------------- Responsive ---------------------------- */
+
+@media (max-width: 720px) {
+  .grille-mesures {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Le tableau laisse sa place aux cartes : aucune action masquée. */
+  .tableau-tickets {
+    display: none;
+  }
+
+  .cartes-tickets {
+    display: grid;
+    gap: 12px;
+  }
+
+  .carte-ticket {
+    border: 1px solid var(--bordure);
+    border-radius: var(--rayon-fort);
+    padding: 14px 16px;
+  }
+
+  .carte-ticket-descriptions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 26px;
+  }
+
+  .carte-ticket-bas {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .page {
+    padding: 12px 12px 48px;
+  }
+
+  .en-tete-app .bouton {
+    width: 100%;
+  }
+
+  .popup-actions {
+    flex-direction: column-reverse;
+  }
+
+  .popup-actions .bouton {
+    width: 100%;
+  }
 }

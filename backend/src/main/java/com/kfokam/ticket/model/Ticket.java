@@ -8,6 +8,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 import java.time.Instant;
 
@@ -19,9 +21,15 @@ public class Ticket {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Les contraintes sont répliquées sur l'entité (renforce le DTO) : toute
+    // création d'un Ticket hors du POST est elle aussi bornée.
+    @NotBlank(message = "Le titre est obligatoire.")
+    @Size(max = 100, message = "Le titre ne doit pas dépasser 100 caractères.")
     @Column(nullable = false, length = 100, unique = true)
     private String titre;
 
+    @Size(max = 2000, message = "La description ne doit pas dépasser 2000 caractères.")
+    @Column(length = 2000)
     private String description;
 
     @Enumerated(EnumType.STRING)
@@ -34,11 +42,11 @@ public class Ticket {
     protected Ticket() {
     }
 
-    public Ticket(String titre, String description) {
+    public Ticket(String titre, String description, Instant dateCreation) {
         this.titre = titre;
         this.description = description;
         this.statut = Statut.OUVERT;
-        this.dateCreation = Instant.now();
+        this.dateCreation = dateCreation;
     }
 
     public Long getId() {
@@ -55,10 +63,6 @@ public class Ticket {
 
     public Statut getStatut() {
         return statut;
-    }
-
-    public void setStatut(Statut statut) {
-        this.statut = statut;
     }
 
     public Instant getDateCreation() {
